@@ -39,9 +39,9 @@ def main():
             
             if scammer_input.lower() == "quit":
                 if scammer_input.lower() == "quit":
-    complaint = generate_cybercrime_complaint(
-        honeypot.all_extracted,
-        honeypot.get_conversation_history()
+                     complaint = generate_cybercrime_complaint(
+                     honeypot.all_extracted,
+                     honeypot.get_conversation_history()
     )
 
     print(json.dumps({
