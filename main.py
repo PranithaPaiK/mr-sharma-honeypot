@@ -5,7 +5,7 @@ from honeypot import HoneypotChat
 
 app = FastAPI()
 
-honeypot = HoneypotChat(os.getenv("OPENAI_API_KEY"))
+honeypot = HoneypotChat()
 
 class Message(BaseModel):
     text: str
