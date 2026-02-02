@@ -18,7 +18,7 @@ def main():
         return
     
     # Initialize the honeypot
-    honeypot = HoneypotChat(api_key)
+    honeypot = HoneypotChat()
     
     print("=" * 60)
     print("🍯 MR. SHARMA AI HONEYPOT 🍯")
