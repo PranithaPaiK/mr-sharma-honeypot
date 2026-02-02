@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from honeypot import HoneypotChat
+import os
 
 app = FastAPI()
 honeypot = HoneypotChat()
