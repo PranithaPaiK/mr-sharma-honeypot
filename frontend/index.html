@@ -12,10 +12,6 @@
             --text-color: #000000;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             height: 100vh;
@@ -25,7 +21,6 @@
             color: var(--text-color);
         }
 
-        /* Fullscreen Chat Window */
         #chat-window {
             width: 100vw;
             height: 100vh;
@@ -33,7 +28,6 @@
             flex-direction: column;
         }
 
-        /* Header */
         header {
             background: var(--header-color);
             color: white;
@@ -51,10 +45,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2rem;
         }
 
-        /* Alert */
         .alert-box {
             background: #ff5252;
             color: white;
@@ -64,7 +56,6 @@
             display: none;
         }
 
-        /* Messages */
         #messages {
             flex: 1;
             padding: 20px;
@@ -95,7 +86,6 @@
             border-top-left-radius: 0;
         }
 
-        /* Input Area */
         .input-area {
             background: #f0f0f0;
             padding: 12px;
@@ -109,7 +99,6 @@
             border: none;
             border-radius: 25px;
             outline: none;
-            font-size: 1rem;
             color: var(--text-color);
         }
 
@@ -121,10 +110,6 @@
             border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-        }
-
-        button:hover {
-            background: #128c7e;
         }
     </style>
 </head>
@@ -141,13 +126,10 @@
         </div>
     </header>
 
-    <div id="extraction-alert" class="alert-box">🚨 DATA INTERCEPTED 🚨</div>
+    <div id="extraction-alert" class="alert-box"></div>
 
-    <div id="messages">
-        <div class="msg sharma">
-            Namaste Beta. How can I help you today? I was just reading my pension papers.
-        </div>
-    </div>
+    <!-- ❌ NO initial message here -->
+    <div id="messages"></div>
 
     <div class="input-area">
         <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKey(event)">
@@ -159,6 +141,17 @@
 <script>
     function handleKey(e) {
         if (e.key === "Enter") sendMessage();
+    }
+
+    function fallbackReply() {
+        const replies = [
+            "Hmm beta, please continue… I’m listening carefully.",
+            "Yes beta, go on. Tell me more.",
+            "I see… please explain clearly.",
+            "Hmm… that sounds important. Continue beta.",
+            "Alright beta, I am following you."
+        ];
+        return replies[Math.floor(Math.random() * replies.length)];
     }
 
     async function sendMessage() {
@@ -181,23 +174,32 @@
             });
 
             const data = await response.json();
+            const reply = data.reply && data.reply.trim()
+                ? data.reply
+                : fallbackReply();
 
-            msgDiv.innerHTML += `<div class="msg sharma">${data.reply}</div>`;
+            msgDiv.innerHTML += `<div class="msg sharma">${reply}</div>`;
 
-            if (data.detected_info.upi_ids.length > 0 || data.detected_info.links.length > 0) {
+            if (data.detected_info &&
+                (data.detected_info.upi_ids.length > 0 ||
+                 data.detected_info.links.length > 0)) {
+
                 alertBox.style.display = 'block';
                 alertBox.innerText =
-                    "🚨 Detected: " + (data.detected_info.upi_ids[0] || data.detected_info.links[0]);
+                    "🚨 Detected: " +
+                    (data.detected_info.upi_ids[0] ||
+                     data.detected_info.links[0]);
 
                 setTimeout(() => alertBox.style.display = 'none', 5000);
             }
 
-            msgDiv.scrollTop = msgDiv.scrollHeight;
-
         } catch {
+            // 🔒 Even on error, MR SHARMA replies
             msgDiv.innerHTML +=
-                `<div class="msg sharma" style="color:red">Beta, my internet is acting up...</div>`;
+                `<div class="msg sharma">${fallbackReply()}</div>`;
         }
+
+        msgDiv.scrollTop = msgDiv.scrollHeight;
     }
 </script>
 
