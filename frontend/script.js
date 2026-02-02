@@ -17,7 +17,7 @@ async function sendMessage() {
 
     try {
         // Updated URL to match the FastAPI route we built earlier
-        const response = await fetch('/api/scam-honeypot', {
+        const response = await fetch('https://mr-sharma-honeypot-1.onrender.com/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
