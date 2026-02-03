@@ -16,7 +16,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Serve templates
 templates = Jinja2Templates(directory="templates")
 
-class Message(BaseModel):
+from pydantic import BaseModel
+class ChatRequest(BaseModel):
     session_id: str
     text: str
 
@@ -26,13 +27,18 @@ async def home(request: Request):
 
 @app.post("/chat")
 def chat(req: ChatRequest):
+    try:
 
-    # Create session if not exists
-    if req.session_id not in sessions:
-        sessions[req.session_id] = HoneypotChat()
+        # Create session if not exists
+        if req.session_id not in sessions:
+            sessions[req.session_id] = HoneypotChat()
 
-    honeypot = sessions[req.session_id]
-    return honeypot.send_message(request.message)
+        honeypot = sessions[req.session_id]
+        response = honeypot.send_message(req.text)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+
 
 @app.post("/reset")
 def reset():
