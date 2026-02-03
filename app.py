@@ -1,22 +1,22 @@
 import os
 from fastapi import FastAPI, Request
-from fastapi.templating import jinja2Templates
-from fastapi.static files import staticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from honeypot import HoneypotChat
 
-# Load env variables
 load_dotenv()
 
 app = FastAPI()
 
-# Serve static files (CSS, JS)
+# Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Serve templates (HTML)
+# Templates folder (NOT inside static)
 templates = Jinja2Templates(directory="templates")
 
+# Home page (FRONTEND)
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse(
@@ -24,15 +24,19 @@ async def home(request: Request):
         {"request": request}
     )
 
-# Initialize honeypot once
-honeypot = HoneypotChat()
+# Health check (API)
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "message": "Mr. Sharma Honeypot API is running 🚀"
+    }
 
+# Chat API
 class Message(BaseModel):
     text: str
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+honeypot = HoneypotChat()
 
 @app.post("/chat")
 def chat(msg: Message):
