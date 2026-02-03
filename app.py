@@ -54,5 +54,5 @@ def chat(msg: Message):
     return reply
     @app.post("/reset")
     async def reset():
-    conversation_history.clear()
-    return {"status": "conversation reset"}
+        conversation_history.clear()
+        return {"status": "conversation reset"}
