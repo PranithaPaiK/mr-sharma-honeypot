@@ -38,8 +38,8 @@ VERIFICATION_QUESTIONS = [
 
 class HoneypotChat:
     def __init__(self):
-        self.messages: list[dict] = []
-        self.all_extracted: ExtractedInfo = {
+        self.messages = []
+        self.all_extracted = {
             "upi_ids": [],
             "bank_accounts": [],
             "links": [],
@@ -66,6 +66,7 @@ class HoneypotChat:
 
             # Safety verification
             if detect_sensitive_claims(scammer_message) and not self.verification_done:
+                import random
                 question = random.choice(VERIFICATION_QUESTIONS)
                 verification_reply = (
                     "Arre beta, I am old and scared easily. "
