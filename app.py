@@ -30,8 +30,29 @@ def health():
 class Message(BaseModel):
     text: str
 
+conversation_history= []
+
 honeypot = HoneypotChat()
 
 @app.post("/chat")
 def chat(msg: Message):
-    return honeypot.send_message(msg.text)
+    # Add user message
+    conversation_history.append({
+        "role": "user",
+        "content": msg.text
+    })
+
+    # Get response from honeypot
+    reply = honeypot.send_message(conversation_history)
+
+    # Add assistant reply
+    conversation_history.append({
+        "role": "assistant",
+        "content": reply["message"]
+    })
+
+    return reply
+    @app.post("/reset")
+def reset():
+    conversation_history.clear()
+    return {"status": "conversation reset"}
