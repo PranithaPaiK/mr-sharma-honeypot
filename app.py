@@ -1,50 +1,34 @@
-import os
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 from honeypot import HoneypotChat
 
-load_dotenv()
-
 app = FastAPI()
+
+# CORS (frontend support)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 honeypot = HoneypotChat()
-
-# Static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Templates
-templates = Jinja2Templates(directory="templates")
-
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request}
-    )
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
 
 class Message(BaseModel):
     text: str
 
 @app.post("/chat")
 def chat(msg: Message):
+    try:
+        return honeypot.send_message(msg.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # Get response from honeypot
-    reply = honeypot.send_message(msg.text)
-
-    # Add assistant reply
-    conversation_history.append({
-        "role": "assistant",
-        "content": reply["message"]
-    })
-
-    return reply
-    @app.post("/reset")
-    def reset():
-        honeypot.reset()
-        return {"status": "reset"}
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "message": "Mr. Sharma Honeypot API is running 🚀"
+    }
