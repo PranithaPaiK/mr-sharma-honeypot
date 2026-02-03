@@ -4,6 +4,7 @@ from openai import OpenAI
 
 from extractor import extract_info, ExtractedInfo
 from safety_checks import detect_sensitive_claims
+import random
 
 # Load environment variables
 load_dotenv()
@@ -44,6 +45,7 @@ class HoneypotChat:
             "links": [],
             "phone_numbers": []
         }
+        self.verification_done = False
 
     def send_message(self, scammer_message: str) -> dict:
         try:
@@ -63,17 +65,19 @@ class HoneypotChat:
             })
 
             # Safety verification
-            if detect_sensitive_claims(scammer_message):
+            if detect_sensitive_claims(scammer_message) and not self.verification_done:
+                question = random.choice(VERIFICATION_QUESTIONS)
                 verification_reply = (
                     "Arre beta, I am old and scared easily. "
                     "Before proceeding please tell me one thing. "
-                    + VERIFICATION_QUESTIONS[0]
+                    + question
                 )
 
                 self.messages.append({
                     "role": "assistant",
                     "content": verification_reply
                 })
+                self.verification_done = True
 
                 return {
                     "status": "verification_required",
@@ -115,6 +119,7 @@ class HoneypotChat:
 
     def reset(self):
         self.messages = []
+        self.verification_done = False
         self.all_extracted = {
             "upi_ids": [],
             "bank_accounts": [],
