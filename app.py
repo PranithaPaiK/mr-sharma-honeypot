@@ -10,7 +10,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Serve templates
-templates = Jinja2Templates(directory="static/templates")
+templates = Jinja2Templates(directory="templates")
 
 honeypot = HoneypotChat()
 
@@ -30,3 +30,7 @@ def chat(msg: Message):
 def reset():
     honeypot.reset()
     return {"status": "reset"}
+
+@app.get("/")
+def root():
+    return{"status":"ok"}
