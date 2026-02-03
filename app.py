@@ -9,6 +9,7 @@ from honeypot import HoneypotChat
 load_dotenv()
 
 app = FastAPI()
+honeypot = HoneypotChat()
 
 # Static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -30,10 +31,6 @@ def health():
 class Message(BaseModel):
     text: str
 
-conversation_history= []
-
-honeypot = HoneypotChat()
-
 @app.post("/chat")
 def chat(msg: Message):
     # Add user message
@@ -43,7 +40,7 @@ def chat(msg: Message):
     })
 
     # Get response from honeypot
-    reply = honeypot.send_message(conversation_history)
+    reply = honeypot.send_message(msg.text)
 
     # Add assistant reply
     conversation_history.append({
@@ -53,6 +50,6 @@ def chat(msg: Message):
 
     return reply
     @app.post("/reset")
-    async def reset():
-        conversation_history.clear()
-        return {"status": "conversation reset"}
+    def reset():
+        honeypot.reset()
+        return {"status": "reset"}

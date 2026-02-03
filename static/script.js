@@ -22,13 +22,8 @@ async function sendMessage() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'mysecretkey123' // This must match your TEAM_API_KEY
             },
-            body: JSON.stringify({
-                sessionId: "session-1",
-                message: { sender: "scammer", text: text },
-                conversationHistory: []
-            })
+            body: JSON.stringify({ text })
         });
 
         const data = await response.json();
