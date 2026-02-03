@@ -46,6 +46,8 @@ class HoneypotChat:
             "phone_numbers": []
         }
         self.verification_done = False
+        self.verification_index = 0
+        self.awaiting_verification = False
 
     def send_message(self, scammer_message: str) -> dict:
         try:
@@ -65,26 +67,23 @@ class HoneypotChat:
             })
 
             # Safety verification
-            if detect_sensitive_claims(scammer_message) and not self.verification_done:
-                import random
+            if detect_sensitive_claims(scammer_message) and not self.verification_done and not self.awaiting_verification:
                 question = random.choice(VERIFICATION_QUESTIONS)
-                verification_reply = (
-                    "Arre beta, I am old and scared easily. "
-                    "Before proceeding please tell me one thing. "
-                    + question
-                )
+                self.awaiting_verification = True
 
                 self.messages.append({
                     "role": "assistant",
                     "content": verification_reply
                 })
-                self.verification_done = True
 
                 return {
                     "status": "verification_required",
                     "reply": verification_reply,
                     "detected_info": extracted
                 }
+                if self.awaiting_verification:
+                   self.awaiting_verification = False
+                   self.verification_done = True
 
             # OpenAI call
             response = client.chat.completions.create(
