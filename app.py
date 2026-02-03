@@ -33,11 +33,6 @@ class Message(BaseModel):
 
 @app.post("/chat")
 def chat(msg: Message):
-    # Add user message
-    conversation_history.append({
-        "role": "user",
-        "content": msg.text
-    })
 
     # Get response from honeypot
     reply = honeypot.send_message(msg.text)
