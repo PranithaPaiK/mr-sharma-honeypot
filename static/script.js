@@ -24,7 +24,6 @@ async function sendMessage() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                session_id : "session-1",
                 text: text
              })
         });
