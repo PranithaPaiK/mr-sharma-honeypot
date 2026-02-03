@@ -5,6 +5,10 @@ from pydantic import BaseModel
 from honeypot import HoneypotChat
 
 app = FastAPI()
+sessions = {
+    "session-1": HoneypotChat(),
+    "session-2": HoneypotChat()
+}
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -12,9 +16,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Serve templates
 templates = Jinja2Templates(directory="templates")
 
-honeypot = HoneypotChat()
-
 class Message(BaseModel):
+    session_id: str
     text: str
 
 @app.get("/")
@@ -22,9 +25,14 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/chat")
-def chat(msg: Message):
-    # 🔥 ONLY pass latest message
-    return honeypot.send_message(msg.text)
+def chat(req: ChatRequest):
+
+    # Create session if not exists
+    if req.session_id not in sessions:
+        sessions[req.session_id] = HoneypotChat()
+
+    honeypot = sessions[req.session_id]
+    return honeypot.send_message(request.message)
 
 @app.post("/reset")
 def reset():
