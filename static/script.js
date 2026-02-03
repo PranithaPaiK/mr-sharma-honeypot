@@ -1,3 +1,4 @@
+alert("JS IS RUNNING");
 function handleKey(e) {
     if (e.key === "Enter") sendMessage();
 }
@@ -17,7 +18,7 @@ async function sendMessage() {
 
     try {
         // Updated URL to match the FastAPI route we built earlier
-        const response = await fetch('https://mr-sharma-honeypot-1.onrender.com/chat', {
+        const response = await fetch('/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
