@@ -21,7 +21,9 @@ async function sendMessage() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({
+                session_id: "session-1",
+                text: text })
         });
 
         const data = await response.json();
