@@ -34,9 +34,12 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        const reply = data.reply && data.reply.trim()
-            ? data.reply
-            : fallbackReply();
+        let reply = data.reply;
+
+        if (!reply || reply.length < 30) {
+         // Backend replied but too short → pad it
+        reply = reply + " Beta, please explain slowly. I am old and confused.";
+        }
 
         msgDiv.innerHTML += `<div class="msg sharma">${reply}</div>`;
 
