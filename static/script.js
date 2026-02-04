@@ -2,17 +2,6 @@ function handleKey(e) {
     if (e.key === "Enter") sendMessage();
 }
 
-function fallbackReply() {
-    const replies = [
-        "Hmm beta, please continue… I’m listening carefully.",
-        "Yes beta, go on. Tell me more.",
-        "I see… please explain clearly.",
-        "Hmm… that sounds important. Continue beta.",
-        "Alright beta, I am following you."
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
-}
-
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const msgDiv = document.getElementById('messages');
@@ -21,28 +10,32 @@ async function sendMessage() {
 
     if (!text) return;
 
+    // Show scammer message
     msgDiv.innerHTML += `<div class="msg scammer">${text}</div>`;
     input.value = '';
     msgDiv.scrollTop = msgDiv.scrollHeight;
 
     try {
-        const response = await fetch('/ask', {
+        const response = await fetch('/chat', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: text })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
         });
 
         const data = await response.json();
 
         let reply = data.reply;
 
-        if (!reply || reply.length < 30) {
-         // Backend replied but too short → pad it
-        reply = reply + " Beta, please explain slowly. I am old and confused.";
+        // Make replies feel more human & detailed
+        if (!reply || reply.trim().length < 30) {
+            reply += " Beta, please explain slowly. I am old and confused.";
         }
 
         msgDiv.innerHTML += `<div class="msg sharma">${reply}</div>`;
 
+        // 🚨 Show extracted info
         if (data.detected_info &&
             (data.detected_info.upi_ids.length > 0 ||
              data.detected_info.links.length > 0)) {
@@ -53,11 +46,16 @@ async function sendMessage() {
                 (data.detected_info.upi_ids[0] ||
                  data.detected_info.links[0]);
 
-            setTimeout(() => alertBox.style.display = 'none', 5000);
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
         }
 
-    } catch (err) {
-        msgDiv.innerHTML += `<div class="msg sharma">${fallbackReply()}</div>`;
+    } catch (error) {
+        console.error("Frontend error:", error);
+
+        msgDiv.innerHTML +=
+            `<div class="msg sharma">Arre beta… my internet is very slow. Please repeat slowly.</div>`;
     }
 
     msgDiv.scrollTop = msgDiv.scrollHeight;
