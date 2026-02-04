@@ -63,58 +63,58 @@ class HoneypotChat:
         self.awaiting_verification = False
 
     def send_message(self, scammer_message: str):
-    try:
-        # 1. Extract scam info
-        extracted = extract_info(scammer_message)
+        try:
+            # 1. Extract scam info
+            extracted = extract_info(scammer_message)
 
-        # 2. Merge extracted data
-        for key in self.all_extracted:
-            self.all_extracted[key] = list(
+            # 2. Merge extracted data
+            for key in self.all_extracted:
+                self.all_extracted[key] = list(
                 set(self.all_extracted[key] + extracted.get(key, []))
             )
 
-        # 3. Store scammer message (IMPORTANT)
-        conversation_history.append({
-            "role": "user",
-            "content": scammer_message
-        })
+            # 3. Store scammer message (IMPORTANT)
+            conversation_history.append({
+                "role": "user",
+                "content": scammer_message
+            })
 
-        # 4. OpenAI call
-        response = client.chat.completions.create(
+            # 4. OpenAI call
+            response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=conversation_history,
             temperature=0.9,
             max_tokens=500
-        )
-
-        reply = response.choices[0].message.content.strip()
-
-        # 5. Force longer replies if too short
-        if len(reply.split()) < 40:
-            reply += (
-                " Beta, I am old and need some time to understand all this. "
-                "Please explain slowly. My eyesight is weak and I get confused "
-                "with online things. Why are you asking for money like this?"
             )
 
-        # 6. Save assistant reply
-        conversation_history.append({
+            reply = response.choices[0].message.content.strip()
+
+            # 5. Force longer replies if too short
+            if len(reply.split()) < 40:
+                reply += (
+                    " Beta, I am old and need some time to understand all this. "
+                    "Please explain slowly. My eyesight is weak and I get confused "
+                    "with online things. Why are you asking for money like this?"
+                )
+
+            # 6. Save assistant reply
+            conversation_history.append({
             "role": "assistant",
             "content": reply
-        })
+            })
 
-        return {
+            return {
             "status": "success",
             "reply": reply,
             "detected_info": extracted,
             "all_extracted_info": self.all_extracted
-        }
+            }
 
-    except Exception as e:
-        return {
+        except Exception as e:
+            return {
             "status": "error",
             "error": str(e)
-        }
+            }
     def reset(self):
         self.messages = []
         self.verification_done = False
