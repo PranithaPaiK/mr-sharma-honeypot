@@ -42,4 +42,4 @@ def chat(req: ChatRequest):
 def reset(req: ChatRequest):
     if req.session_id in sessions:
         sessions[req.session_id].reset()
-    return {"status": "reset"}:
+    return {"status": "reset"}
