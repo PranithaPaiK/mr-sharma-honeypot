@@ -7,7 +7,7 @@ load_dotenv()
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
-if not API_KEY:
+if not GOOGLE_API_KEY:
     raise RuntimeError("GOOGLE_API_KEY not found in environment")
 
 genai.configure(api_key=API_KEY)
