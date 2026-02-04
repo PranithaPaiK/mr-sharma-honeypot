@@ -75,20 +75,8 @@ class HoneypotChat:
             })
 
             # Safety verification
-            if detect_sensitive_claims(scammer_message) and not self.verification_done:
-                self.verification_done = True
-                question = random.choice(VERIFICATION_QUESTIONS)
-                
-                self.messages.append({
-                    "role": "assistant",
-                    "content": verification_reply
-                })
-
-                return {
-                    "status": "verification_required",
-                    "reply": verification_reply,
-                    "detected_info": extracted
-                }
+            # Let GPT handle sensitive claims naturally
+            # Do NOT block with verification questions
                 if self.awaiting_verification:
                    self.awaiting_verification = False
                    self.verification_done = True
@@ -101,8 +89,8 @@ class HoneypotChat:
                     *conversation_history
                 ],
                 reply = generate_reply(messages),
-                temperature=0.9,
-                max_tokens=400
+                temperature=1.1,
+                max_tokens=700
             )
 
             reply = response.choices[0].message.content or ""
