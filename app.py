@@ -35,6 +35,9 @@ def chat(req: ChatRequest):
         honeypot = sessions[req.session_id]
         response = honeypot.send_message(req.text)
         return honeypot.send_message(req.message)
+        except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
 @app.post("/reset")
 def reset(req: ChatRequest):
     if req.session_id in sessions:
