@@ -77,7 +77,7 @@ class HoneypotChat:
             # Safety verification
             # Let GPT handle sensitive claims naturally
             # Do NOT block with verification questions
-                if self.awaiting_verification:
+            if self.awaiting_verification:
                    self.awaiting_verification = False
                    self.verification_done = True
 
