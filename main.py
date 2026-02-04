@@ -46,19 +46,22 @@ async def chat(data: ChatRequest):
             "content": data.message
         })
 
-        reply = get_sharma_reply(
+        result = get_sharma_reply(
             data.message,
             conversations[data.session_id]
             )
 
         conversations[data.session_id].append({
             "role": "assistant",
-            "content": reply
+            "content": result["reply"]
         })
 
         return {
             "session_id": data.session_id,
-            "reply": reply
+            "reply": result["reply"],
+            "scam_risk": result["scam_risk"],
+            "risk_score": result["score"],
+            "reasons": result["reasons"]
         }
 
     except Exception as e:
