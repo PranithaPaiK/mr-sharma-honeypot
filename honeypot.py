@@ -100,7 +100,7 @@ class HoneypotChat:
                     {"role": "system", "content": MR_SHARMA_SYSTEM_PROMPT},
                     *conversation_history
                 ],
-                reply = generate_reply(messages)
+                reply = generate_reply(messages),
                 temperature=0.9,
                 max_tokens=400
             )
