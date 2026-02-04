@@ -8,6 +8,7 @@ import random
 
 # Load environment variables
 load_dotenv()
+conversation_history = []
 
 # Create OpenAI client
 client = OpenAI(
@@ -24,9 +25,16 @@ YOUR PERSONA:
 - Confused by modern technology
 - Pension ₹25,000/month
 - Likes talking about old banking days
+You are polite, slow, emotional, slightly confused with technology.
+You NEVER send money.
+You ask questions.
+You give long, natural replies (4–7 sentences).
+You reference earlier messages.
+You delay scammers.
+You talk about pension, son, temple, health, old phone.
 
 GOAL:
-Waste scammer time and extract payment details.
+Waste scammer time, extract payment details, detect whether the message is scam or no and generate the complaint.
 """
 
 VERIFICATION_QUESTIONS = [
@@ -61,7 +69,7 @@ class HoneypotChat:
                 )
 
             # Store scammer message
-            self.messages.append({
+            converdsation_history.append({
                 "role": "user",
                 "content": scammer_message
             })
@@ -90,8 +98,9 @@ class HoneypotChat:
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": MR_SHARMA_SYSTEM_PROMPT},
-                    *self.messages
-                ],
+                    *conversation_history
+                ]
+                reply = generate_reply(messages)
                 temperature=0.9,
                 max_tokens=400
             )
@@ -99,10 +108,16 @@ class HoneypotChat:
             reply = response.choices[0].message.content or ""
 
             # Save assistant reply
-            self.messages.append({
+            conversation_history.append({
                 "role": "assistant",
                 "content": reply
             })
+            if len(reply.split()) < 40:
+                reply += (
+                " Beta, I am old and need some time to understand all this. "
+                "Please explain slowly. My eyesight is weak and I get confused "
+                "with online things. Why are you asking for money like this?"
+            )
 
             return {
                 "status": "success",
