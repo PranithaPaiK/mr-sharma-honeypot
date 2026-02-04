@@ -32,34 +32,48 @@ class ChatRequest(BaseModel):
     session_id: str
     text: str
 
+import google.generativeai as genai
+import os
+
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+
+sessions = {}
+
 @app.post("/chat")
 def chat(req: ChatRequest):
     print("📩 Incoming:", req.text)
 
-    if not req.text or req.text.strip() == "":
-        return {"reply": "Arre beta… say something clearly."}
+    if req.session_id not in sessions:
+        sessions[req.session_id] = []
+
+    history = sessions[req.session_id]
+
+    history.append({"role": "user", "parts": [req.text]})
 
     try:
-        model = genai.GenerativeModel("gemini-pro")
-
-        prompt = f"""
+        model = genai.GenerativeModel(
+            model_name="models/gemini-1.5-pro",
+            system_instruction="""
 You are Mr Sharma, a 72-year-old retired bank clerk from Mumbai.
-You speak slowly, politely, and cautiously.
-You never send money.
-You get suspicious easily.
 
-User message:
-{req.text}
+RULES:
+- Speak slowly and cautiously
+- Never send money
+- Ask verification questions
+- If message sounds urgent or about money → get suspicious
+- Do NOT repeat the same reply
 """
+        )
 
-        response = model.generate_content(prompt)
+        response = model.generate_content(history)
 
-        return {
-            "reply": response.text.strip()
-        }
+        reply = response.text.strip()
+        history.append({"role": "model", "parts": [reply]})
+
+        return {"reply": reply}
 
     except Exception as e:
         print("❌ Gemini error:", e)
         return {
-            "reply": "Arre beta… my phone is troubling me. Please say again."
+            "reply": "Arre beta… something is wrong. Tell me again slowly."
         }
