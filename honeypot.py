@@ -67,10 +67,10 @@ class HoneypotChat:
             })
 
             # Safety verification
-            if detect_sensitive_claims(scammer_message) and not self.verification_done and not self.awaiting_verification:
+            if detect_sensitive_claims(scammer_message) and not self.verification_done:
+                self.verification_done = True
                 question = random.choice(VERIFICATION_QUESTIONS)
-                self.awaiting_verification = True
-
+                
                 self.messages.append({
                     "role": "assistant",
                     "content": verification_reply
