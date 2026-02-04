@@ -1,19 +1,14 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-
+from pydantic import BaseModel
 from extractor import extract_info, ExtractedInfo
 from safety_checks import detect_sensitive_claims
+from fastapi import FastAPI
 import random
 
 # Load environment variables
 load_dotenv()
-conversation_history = [
-    {
-        "role": "system",
-        "content": MR_SHARMA_SYSTEM_PROMPT
-    }
-]
 
 # Create OpenAI client
 client = OpenAI(
@@ -41,6 +36,11 @@ You talk about pension, son, temple, health, old phone.
 GOAL:
 Waste scammer time, extract payment details, detect whether the message is scam or no and generate the complaint.
 """
+app = FastAPI()
+
+conversation_history = [
+    {"role": "system", "content": MR_SHARMA_SYSTEM_PROMPT}
+]
 
 VERIFICATION_QUESTIONS = [
     "Beta, my memory is weak. What was my wife's name?",
@@ -63,60 +63,58 @@ class HoneypotChat:
         self.awaiting_verification = False
 
     def send_message(self, scammer_message: str):
-        try:
-            # Extract scammer info
-            extracted = extract_info(scammer_message)
+    try:
+        # 1. Extract scam info
+        extracted = extract_info(scammer_message)
 
-            # Merge extracted data
-            for key in self.all_extracted:
-                self.all_extracted[key] = list(
-                    set(self.all_extracted[key] + extracted.get(key, []))
-                )
-
-            # Store scammer message
-            converdsation_history.append({
-                "role": "user",
-                "content": user_text
-            })
-
-            # OpenAI call
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=conversation_history,
-                temperature=0.9,
-                max_tokens=500
+        # 2. Merge extracted data
+        for key in self.all_extracted:
+            self.all_extracted[key] = list(
+                set(self.all_extracted[key] + extracted.get(key, []))
             )
 
-            reply = response.choices[0].message.content 
+        # 3. Store scammer message (IMPORTANT)
+        conversation_history.append({
+            "role": "user",
+            "content": scammer_message
+        })
 
-            # Save assistant reply
-            conversation_history.append({
-                "role": "assistant",
-                "content": reply
-            })
-            return {
-                "reply": reply
-            }
-            if len(reply.split()) < 40:
-                reply += (
+        # 4. OpenAI call
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=conversation_history,
+            temperature=0.9,
+            max_tokens=500
+        )
+
+        reply = response.choices[0].message.content.strip()
+
+        # 5. Force longer replies if too short
+        if len(reply.split()) < 40:
+            reply += (
                 " Beta, I am old and need some time to understand all this. "
                 "Please explain slowly. My eyesight is weak and I get confused "
                 "with online things. Why are you asking for money like this?"
             )
 
-            return {
-                "status": "success",
-                "reply": reply,
-                "detected_info": extracted,
-                "all_extracted_info": self.all_extracted
-            }
+        # 6. Save assistant reply
+        conversation_history.append({
+            "role": "assistant",
+            "content": reply
+        })
 
-        except Exception as e:
-            return {
-                "status": "error",
-                "error": str(e)
-            }
+        return {
+            "status": "success",
+            "reply": reply,
+            "detected_info": extracted,
+            "all_extracted_info": self.all_extracted
+        }
 
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
     def reset(self):
         self.messages = []
         self.verification_done = False
