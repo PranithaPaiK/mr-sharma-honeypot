@@ -8,7 +8,12 @@ import random
 
 # Load environment variables
 load_dotenv()
-conversation_history = []
+conversation_history = [
+    {
+        "role": "system",
+        "content": MR_SHARMA_SYSTEM_PROMPT
+    }
+]
 
 # Create OpenAI client
 client = OpenAI(
@@ -57,7 +62,7 @@ class HoneypotChat:
         self.verification_index = 0
         self.awaiting_verification = False
 
-    def send_message(self, scammer_message: str) -> dict:
+    def send_message(self, scammer_message: str):
         try:
             # Extract scammer info
             extracted = extract_info(scammer_message)
@@ -71,35 +76,27 @@ class HoneypotChat:
             # Store scammer message
             converdsation_history.append({
                 "role": "user",
-                "content": scammer_message
+                "content": user_text
             })
-
-            # Safety verification
-            # Let GPT handle sensitive claims naturally
-            # Do NOT block with verification questions
-            if self.awaiting_verification:
-                   self.awaiting_verification = False
-                   self.verification_done = True
 
             # OpenAI call
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": MR_SHARMA_SYSTEM_PROMPT},
-                    *conversation_history
-                ],
-                reply = generate_reply(messages),
-                temperature=1.1,
-                max_tokens=700
+                messages=conversation_history,
+                temperature=0.9,
+                max-tokens=500
             )
 
-            reply = response.choices[0].message.content or ""
+            reply = response.choices[0].message.content 
 
             # Save assistant reply
             conversation_history.append({
                 "role": "assistant",
                 "content": reply
             })
+            return {
+                "reply": reply
+            }
             if len(reply.split()) < 40:
                 reply += (
                 " Beta, I am old and need some time to understand all this. "
