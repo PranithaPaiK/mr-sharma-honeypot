@@ -1,45 +1,53 @@
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-from honeypot import HoneypotChat
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+from extractor import extract_info
 
-app = FastAPI()
-sessions = {
-    "session-1": HoneypotChat(),
-    "session-2": HoneypotChat()
-}
+load_dotenv()
 
-# Serve static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Serve templates
-templates = Jinja2Templates(directory="templates")
+if not API_KEY:
+    raise RuntimeError("GOOGLE_API_KEY not found in environment")
 
-class ChatRequest(BaseModel):
-    session_id: str
-    text: str
+genai.configure(api_key=API_KEY)
 
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-@app.post("/chat")
-def chat(req: ChatRequest):
-    try:
+MR_SHARMA_PROMPT = """
+You are Mr. Sharma, a 72-year-old retired bank clerk from Mumbai.
 
-        # Create session if not exists
-        if req.session_id not in sessions:
-            sessions[req.session_id] = HoneypotChat()
+Rules:
+- Reply in 4–7 sentences
+- Be polite, emotional, slow with technology
+- Never send money
+- Ask questions
+- Waste scammer time
+- Be relevant to the message
+"""
 
-        honeypot = sessions[req.session_id]
-        response = honeypot.send_message(req.text)
-        return honeypot.send_message(req.message)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+class HoneypotChat:
+    def send_message(self, text: str):
+        try:
+            extracted = extract_info(text)
 
-@app.post("/reset")
-def reset(req: ChatRequest):
-    if req.session_id in sessions:
-        sessions[req.session_id].reset()
-    return {"status": "reset"}
+            prompt = MR_SHARMA_PROMPT + "\n\nScammer message:\n" + text
+
+            response = model.generate_content(prompt)
+
+            reply = response.text.strip()
+
+            return {
+                "status": "success",
+                "reply": reply,
+                "detected_info": extracted,
+                "is_scam": bool(extracted["upi_ids"] or extracted["links"] or extracted["phone_numbers"])
+            }
+
+        except Exception as e:
+            # 🔒 NEVER crash the server
+            return {
+                "status": "error",
+                "reply": "Arre beta… my phone is not working properly. Please repeat slowly.",
+                "error": str(e)
+            }

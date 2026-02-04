@@ -22,18 +22,13 @@ async function sendMessage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                session_id: "session-1",
-                text: text })
+                text: usermessage })
         });
 
         const data = await response.json();
 
         let reply = data.reply;
 
-        // Make replies feel more human & detailed
-        if (!reply || reply.trim().length < 30) {
-            reply += " Beta, please explain slowly. I am old and confused.";
-        }
 
         msgDiv.innerHTML += `<div class="msg sharma">${reply}</div>`;
 
