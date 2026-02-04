@@ -83,8 +83,8 @@ class HoneypotChat:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=conversation_history,
-                temperature==0.9,
-                max-tokens==500
+                temperature=0.9,
+                max_tokens=500
             )
 
             reply = response.choices[0].message.content 
