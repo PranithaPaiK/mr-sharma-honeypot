@@ -109,27 +109,38 @@ from fastapi import Body
 
 GUVI_API_KEY = "guvi-honeypot-123"
 
-
-@app.api_route("/honeypot", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/honeypot", methods=["POST", "OPTIONS"])
 async def honeypot(
     payload: dict | None = Body(default=None),
     x_api_key: str | None = Header(default=None)
 ):
-    # Allow GET without auth (health check)
-    if payload is None and x_api_key is None:
+    # Handle OPTIONS / empty-body requests (preflight, health checks)
+    if payload is None:
         return {
-            "status": "alive",
-            "note": "honeypot endpoint reachable"
+            "status": "success",
+            "reply": "Service is up"
         }
 
-    # Auth check for POST
+    # API key check (GUVI sends this)
     if x_api_key != GUVI_API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
+    # Extract scammer text safely
+    scammer_text = payload.get("message", {}).get("text", "")
+
+    reply_text = (
+        "We have detected unusual activity on your bank account. "
+        "To avoid temporary suspension, verification is required immediately. "
+        "Please confirm your registered details for security purposes. "
+        "This process is mandatory as per banking guidelines. "
+        "Failure to respond may result in restricted account access. "
+        "Kindly reply as soon as possible."
+    )
+
+    # ✅ EXACT FORMAT REQUIRED BY GUVI
     return {
-        "status": "active",
-        "received_payload": payload,
-        "analysis": "honeypot endpoint working"
+        "status": "success",
+        "reply": reply_text
     }
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
