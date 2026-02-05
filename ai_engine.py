@@ -32,19 +32,16 @@ MAX_MESSAGES = 20
 
 def get_sharma_reply(scammer_message: str, conversation: list) -> str:
     try:
-        conversation.append({"role": "user", "content": scammer_message})
         if len(conversation) > MAX_MESSAGES:
             conversation[:] = [conversation[0]] + conversation[-18:]
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are Mr Sharma, an anti-scam assistant."},
-        {"role": "user", "content": "Hello sir"}
-            ],
+            messages=conversation,
             temperature=1.0,
             presence_penalty=0.9,
             frequency_penalty=0.7,
+            max_tokens=250
             )
 
         reply = response.choices[0].message.content

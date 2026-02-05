@@ -5,12 +5,19 @@ from fastapi.responses import JSONResponse
 from ai_engine import get_sharma_reply, SYSTEM_PROMPT
 from extractor import extract_scammer_info
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import Optional
 import uuid
 import os
 
 load_dotenv()  # loads .env file contents into environment variables
 
+class ReportRequest(BaseModel):
+    session_id: str
 
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
 
 app = FastAPI()
 conversations={}
@@ -23,24 +30,24 @@ app.add_middleware(
 )
 
 @app.post("/api/chat")
-async def chat(request: Request):
-    data = await request.json()
-    user_message = data.get("message", "")
-    session_id = data.get("session_id")
+async def chat(data: ChatRequest):
+    user_message = data.message
+    session_id = data.session_id
 
     # create new session if not present
     if not session_id:
         session_id = str(uuid.uuid4())
         conversations[session_id] = []
 
-    conversations[session_id].append({
-        "role": "scammer",
+    conversation.append({
+        "role": "user",
         "content": user_message
     })
 
-    reply = generate_natural_reply(user_message)
+    reply = get_sharma_reply(user_message, 
+        conversation[session_id])
 
-    conversations[session_id].append({
+    conversation.append({
         "role": "assistant",
         "content": reply
     })
@@ -54,16 +61,16 @@ async def chat(request: Request):
     )
 
 @app.post("/api/report")
-async def generate_report(request: Request):
+async def generate_report(data: ReportRequest):
     data = await request.json()
-    session_id = data.get("session_id")
+    session_id = data.session_id
 
     if not session_id or session_id not in conversations:
         return JSONResponse({
             "report": "No conversation found for this session."
         })
 
-    convo = conversations[session_id]
+    convo = conversation[session_id]
 
     full_text = ""
     report_lines = []
