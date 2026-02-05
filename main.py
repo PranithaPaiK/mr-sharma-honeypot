@@ -26,12 +26,17 @@ async def chat(request: Request):
     data = await request.json()
     user_message = data.get("message", "")
 
+    if not user_message:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Empty message"}
+        )
+
     conversation.append({
         "role": "user",
         "content": user_message
     })
 
-    # TEMP natural replies (no AI yet)
     reply = generate_natural_reply(user_message)
 
     conversation.append({
@@ -39,7 +44,13 @@ async def chat(request: Request):
         "content": reply
     })
 
-    return {"reply": reply}
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "reply": reply,
+            "message_received": user_message
+        }
+    )
 
 
 @app.post("/api/report")
