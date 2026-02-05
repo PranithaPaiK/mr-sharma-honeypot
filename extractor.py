@@ -1,16 +1,19 @@
 import re
 
-def extract_scammer_info(message: str) -> dict:
-    """Extract UPI IDs, bank accounts, phone numbers, and links from message."""
-    
-    upi_pattern = r'[a-zA-Z0-9._-]+@[a-zA-Z]{2,}'
-    bank_pattern = r'\b\d{9,18}\b'
-    url_pattern = r'https?://[^\s]+|www\.[^\s]+'
-    phone_pattern = r'(?:\+91[\-\s]?)?[6-9]\d{9}'
-    
+def extract_scammer_info(text: str):
+    upi_pattern = r"\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b"
+    phone_pattern = r"\b[6-9]\d{9}\b"
+    bank_pattern = r"\b\d{9,18}\b"
+    link_pattern = r"https?://\S+"
+
+    upi_ids = re.findall(upi_pattern, text)
+    phone_numbers = re.findall(phone_pattern, text)
+    bank_accounts = re.findall(bank_pattern, text)
+    links = re.findall(link_pattern, text)
+
     return {
-        "upi_ids": list(set(re.findall(upi_pattern, message))),
-        "bank_accounts": list(set(re.findall(bank_pattern, message))),
-        "links": list(set(re.findall(url_pattern, message, re.IGNORECASE))),
-        "phone_numbers": list(set(re.findall(phone_pattern, message)))
+        "upi_ids": list(set(upi_ids)),
+        "phone_numbers": list(set(phone_numbers)),
+        "bank_accounts": list(set(bank_accounts)),
+        "links": list(set(links)),
     }

@@ -7,6 +7,7 @@ from extractor import extract_scammer_info
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Optional
+import uuid
 import os
 
 load_dotenv()  # loads .env file contents into environment variables
@@ -33,15 +34,19 @@ async def chat(data: ChatRequest):
     user_message = data.message
     session_id = data.session_id
 
-    conversation.append({
-        "role": "user",
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        conversations[session_id] = []
+
+    conversations[session_id].append({
+        "role": "scammer",
         "content": user_message
     })
 
     # TEMP natural replies (no AI yet)
     reply = generate_natural_reply(user_message)
 
-    conversation.append({
+    conversations[session_id].append({
         "role": "assistant",
         "content": reply
     })
@@ -95,29 +100,11 @@ The above indicators suggest a potential financial fraud attempt.
 This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
 """
 
-    return {
-        "reply": reply,
-        "session_id": session_id
-    }
+    return {"report": report.strip()}
 
 
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
-
-# Simple in-memory conversation (per session)
-conversation = [
-    {
-        "role": "system",
-        "content": (
-            "You are Mr Sharma, a polite elderly Indian man. "
-            "You are chatting with a scammer. "
-            "Your goal is to sound natural, ask innocent questions, "
-            "never reveal personal or financial details, "
-            "and keep the conversation going realistically."
-        )
-    }
-]
-
 
 
 
