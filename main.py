@@ -5,11 +5,15 @@ from fastapi.responses import JSONResponse
 from ai_engine import get_sharma_reply, SYSTEM_PROMPT
 from extractor import extract_scammer_info
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import Optional
 import os
 
 load_dotenv()  # loads .env file contents into environment variables
 
-
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
 
 app = FastAPI()
 conversations={}
@@ -22,9 +26,9 @@ app.add_middleware(
 )
 
 @app.post("/api/chat")
-async def chat(request: Request):
-    data = await request.json()
-    user_message = data.get("message", "")
+async def chat(data: ChatRequest):
+    user_message = data.message
+    session_id = data.session_id
 
     conversation.append({
         "role": "user",
