@@ -7,7 +7,6 @@ from extractor import extract_scammer_info
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Optional
-import uuid
 import os
 
 load_dotenv()  # loads .env file contents into environment variables
@@ -34,11 +33,6 @@ async def chat(data: ChatRequest):
     data = await request.json()
     user_message = data.message
     session_id = data.session_id
-
-    # create new session if not present
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        conversations[session_id] = []
 
     conversation.append({
         "role": "user",
