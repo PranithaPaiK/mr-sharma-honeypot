@@ -2,7 +2,10 @@
 # import os
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from openai import OpenAI
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -36,13 +39,12 @@ def get_sharma_reply(scammer_message: str, conversation: list) -> str:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "SYSTEM_PROMPT"},
+                {"role": "system", "content": "You are Mr Sharma, an anti-scam assistant."},
         {"role": "user", "content": "Hello sir"}
             ],
             temperature=1.0,
             presence_penalty=0.9,
             frequency_penalty=0.7,
-            max_tokens=220
             )
 
         reply = response.choices[0].message.content
