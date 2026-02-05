@@ -5,20 +5,11 @@ from fastapi.responses import JSONResponse
 from ai_engine import get_sharma_reply, SYSTEM_PROMPT
 from extractor import extract_scammer_info
 from dotenv import load_dotenv
-from pydantic import BaseModel
-from uuid import uuid4
-from ai_engine import get_sharma_reply
 import os
 
-load_dotenv()  # loads .env file contents into environment variables
+load_dotenv(dotenv_path=".env",override=True)  # loads .env file contents into environment variables
 
-class ChatRequest(BaseModel):
-    message: str | None = None
-    reply: str | None = None
-    session_id: str | None = None
 
-class ReportRequest(BaseModel):
-    message: str
 
 app = FastAPI()
 conversations={}
@@ -31,50 +22,31 @@ app.add_middleware(
 )
 
 @app.post("/api/chat")
-async def chat(data: ChatRequest):
-    try:
-        # create session if missing
-        if not data.session_id:
-            data.session_id = str(uuid4())
-            conversations[data.session_id] = []
+async def chat(request: Request):
+    data = await request.json()
+    user_message = data.get("message", "")
 
-        if data.session_id not in conversations:
-            conversations[data.session_id] = []
+    conversation.append({
+        "role": "user",
+        "content": user_message
+    })
 
-        conversations[data.session_id].append({
-            "role": "user",
-            "content": data.message
-        })
+    # TEMP natural replies (no AI yet)
+    reply = generate_natural_reply(user_message)
 
-        result = get_sharma_reply(
-            data.message,
-            conversations[data.session_id]
-            )
+    conversation.append({
+        "role": "assistant",
+        "content": reply
+    })
 
-        conversations[data.session_id].append({
-            "role": "assistant",
-            "content": result["reply"]
-        })
-
-        return {
-            "session_id": data.session_id,
-            "reply": result["reply"],
-            "scam_risk": result["scam_risk"],
-            "risk_score": result["score"],
-            "reasons": result["reasons"]
-        }
-
-    except Exception as e:
-        return {
-            "error": "Chat failed",
-            "details": str(e)
-        }
+    return {"reply": reply}
 
 
 @app.post("/api/report")
-async def report(data: ReportRequest):
-    message = data.message
-    return {"status":"received","message":data.message}
+async def generate_report(request: Request):
+    data = await request.json()
+    session_id = data.get("session_id")
+
     if not session_id or session_id not in conversations:
         return JSONResponse({
             "report": "No conversation found for this session."
