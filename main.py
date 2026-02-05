@@ -11,9 +11,12 @@ import os
 
 load_dotenv()  # loads .env file contents into environment variables
 
+class ReportRequest(BaseModel):
+    session_id: str
+
 class ChatRequest(BaseModel):
     message: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 app = FastAPI()
 conversations={}
@@ -43,17 +46,19 @@ async def chat(data: ChatRequest):
         "content": reply
     })
 
-    return {"reply": reply}
+    return {
+        "reply": reply,
+        "session_id": session_id
+     }
 
 
 @app.post("/api/report")
-async def generate_report(request: Request):
-    data = await request.json()
-    session_id = data.get("session_id")
+async def generate_report(data: ReportRequest):
+    session_id = data.session_id
 
     if not session_id or session_id not in conversations:
         return JSONResponse({
-            "report": "No conversation found for this session."
+            "report": "complaint Reported."
         })
 
     convo = conversations[session_id]
@@ -91,7 +96,8 @@ This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
 """
 
     return {
-        "report": report.strip()
+        "reply": reply,
+        "session_id": session_id
     }
 
 
