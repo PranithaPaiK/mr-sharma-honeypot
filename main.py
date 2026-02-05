@@ -7,6 +7,7 @@ from extractor import extract_scammer_info
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Optional
+from uuid import uuid4
 import uuid
 import os
 
@@ -36,6 +37,7 @@ async def chat(data: ChatRequest):
 
     if not session_id:
         session_id = str(uuid.uuid4())
+    if session_id not in conversations:
         conversations[session_id] = []
 
     conversations[session_id].append({
