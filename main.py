@@ -105,33 +105,31 @@ This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
 
     return {"report": report.strip()}
 
-# ===============================
-# GUVI Honeypot Endpoint
-# ===============================
+from fastapi import Body
 
 GUVI_API_KEY = "guvi-honeypot-123"
 
 
-@app.post("/honeypot")
+@app.api_route("/honeypot", methods=["GET", "POST", "OPTIONS"])
 async def honeypot(
-    message: Optional[str] = None,
-    x_api_key: str = Header(None)
+    payload: dict | None = Body(default=None),
+    x_api_key: str | None = Header(default=None)
 ):
+    # Allow GET without auth (health check)
+    if payload is None and x_api_key is None:
+        return {
+            "status": "alive",
+            "note": "honeypot endpoint reachable"
+        }
+
+    # Auth check for POST
     if x_api_key != GUVI_API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
     return {
         "status": "active",
-        "received_message": message,
+        "received_payload": payload,
         "analysis": "honeypot endpoint working"
-    }
-
-
-@app.get("/honeypot")
-async def honeypot_get():
-    return {
-        "status": "alive",
-        "note": "honeypot GET check successful"
     }
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
