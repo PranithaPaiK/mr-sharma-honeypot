@@ -6,6 +6,7 @@ from ai_engine import get_sharma_reply, SYSTEM_PROMPT
 from extractor import extract_scammer_info
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from fastapi import Header , HTTPException
 from typing import Optional
 from uuid import uuid4
 import uuid
@@ -104,7 +105,34 @@ This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
 
     return {"report": report.strip()}
 
+# ===============================
+# GUVI Honeypot Endpoint
+# ===============================
 
+GUVI_API_KEY = "guvi-honeypot-123"
+
+
+@app.post("/honeypot")
+async def honeypot(
+    message: Optional[str] = None,
+    x_api_key: str = Header(None)
+):
+    if x_api_key != GUVI_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    return {
+        "status": "active",
+        "received_message": message,
+        "analysis": "honeypot endpoint working"
+    }
+
+
+@app.get("/honeypot")
+async def honeypot_get():
+    return {
+        "status": "alive",
+        "note": "honeypot GET check successful"
+    }
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
