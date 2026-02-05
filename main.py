@@ -77,8 +77,16 @@ async def generate_report(request: Request):
 
     extracted = extract_scammer_info(full_text)
 
-    report = f"""
-CYBER FRAUD INCIDENT REPORT
+    complaint = f"""
+To,
+The Cyber Crime Cell
+
+Subject: Complaint regarding suspected online financial fraud
+
+Respected Sir/Madam,
+
+I, Mr. Sharma, a retired senior citizen, wish to report a suspected case
+of online financial fraud. The details of the incident are as follows:
 
 Conversation Summary:
 ---------------------
@@ -86,20 +94,17 @@ Conversation Summary:
 
 Extracted Scam Indicators:
 --------------------------
-UPI IDs: {', '.join(extracted['upi_ids']) or 'None found'}
-Phone Numbers: {', '.join(extracted['phone_numbers']) or 'None found'}
-Bank Accounts: {', '.join(extracted['bank_accounts']) or 'None found'}
-Links: {', '.join(extracted['links']) or 'None found'}
+UPI IDs: {', '.join(extracted['upi_ids']) or 'None'}
+Phone Numbers: {', '.join(extracted['phone_numbers']) or 'None'}
+Links: {', '.join(extracted['links']) or 'None'}
 
-Remarks:
---------
-The above indicators suggest a potential financial fraud attempt.
-This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
+I request you to kindly investigate this matter.
+
+Thanking you,
+Mr. Sharma
 """
 
-    return {
-        "report": report.strip()
-    }
+    return {"complaint": complaint.strip()}
 
 
 
