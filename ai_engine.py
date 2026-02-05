@@ -1,8 +1,4 @@
 from openai import OpenAI
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 client = OpenAI()
 
@@ -36,8 +32,7 @@ def get_sharma_reply(scammer_message: str, conversation: list) -> str:
             messages=conversation,
             temperature=1.0,
             presence_penalty=0.9,
-            frequency_penalty=0.7,
-            max_tokens=250
+            frequency_penalty=0.7
             )
 
         reply = response.choices[0].message.content
