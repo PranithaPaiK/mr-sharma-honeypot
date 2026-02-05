@@ -40,10 +40,17 @@ async function sendChat() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                message: message,
+                message: user_message,
                 session_id: sessionId
             })
         });
+        constdata = await response.json();
+
+        // SAVE SESSION ID
+        sessionId = data.session_id;
+
+        // Show reply
+        addMessageToChat(data.reply, "assistant");
 
         if (!res.ok) throw new Error("Backend error");
 
@@ -94,4 +101,15 @@ async function generateReport() {
         content.innerText = "Error generating report.";
         console.error(err);
     }
+}
+// ===== Modal controls for Cyber Complaint =====
+
+function openReport() {
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("report-modal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("report-modal").style.display = "none";
 }

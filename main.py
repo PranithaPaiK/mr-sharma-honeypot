@@ -5,9 +5,10 @@ from fastapi.responses import JSONResponse
 from ai_engine import get_sharma_reply, SYSTEM_PROMPT
 from extractor import extract_scammer_info
 from dotenv import load_dotenv
+import uuid
 import os
 
-load_dotenv(dotenv_path=".env",override=True)  # loads .env file contents into environment variables
+load_dotenv()  # loads .env file contents into environment variables
 
 
 
@@ -25,21 +26,21 @@ app.add_middleware(
 async def chat(request: Request):
     data = await request.json()
     user_message = data.get("message", "")
+    session_id = data.get("session_id")
 
-    if not user_message:
-        return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": "Empty message"}
-        )
+    # create new session if not present
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        conversations[session_id] = []
 
-    conversation.append({
-        "role": "user",
+    conversations[session_id].append({
+        "role": "scammer",
         "content": user_message
     })
 
     reply = generate_natural_reply(user_message)
 
-    conversation.append({
+    conversations[session_id].append({
         "role": "assistant",
         "content": reply
     })
@@ -48,10 +49,9 @@ async def chat(request: Request):
         content={
             "status": "ok",
             "reply": reply,
-            "message_received": user_message
+            "session_id": session_id
         }
     )
-
 
 @app.post("/api/report")
 async def generate_report(request: Request):
