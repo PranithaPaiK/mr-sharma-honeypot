@@ -40,17 +40,10 @@ async function sendChat() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                message: user_message,
+                message: message,
                 session_id: sessionId
             })
         });
-        constdata = await response.json();
-
-        // SAVE SESSION ID
-        sessionId = data.session_id;
-
-        // Show reply
-        addMessageToChat(data.reply, "assistant");
 
         if (!res.ok) throw new Error("Backend error");
 
@@ -74,4 +67,31 @@ function appendBubble(text, sender) {
     bubble.innerText = text;
     chatWindow.appendChild(bubble);
     chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+async function generateReport() {
+    const modal = document.getElementById("report-modal");
+    const overlay = document.getElementById("overlay");
+    const content = document.getElementById("report-content");
+
+    modal.style.display = "block";
+    overlay.style.display = "block";
+    content.innerText = "Analyzing conversation and extracting scam details...";
+
+    try {
+        const res = await fetch("/api/report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: sessionId   // 🔥 THIS FIXES IT
+            })
+        });
+
+        const data = await res.json();
+        content.innerHTML = data.report.replace(/\n/g, "<br>");
+
+    } catch (err) {
+        content.innerText = "Error generating report.";
+        console.error(err);
+    }
 }
