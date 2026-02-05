@@ -31,6 +31,7 @@ app.add_middleware(
 
 @app.post("/api/chat")
 async def chat(data: ChatRequest):
+    data = await request.json()
     user_message = data.message
     session_id = data.session_id
 
@@ -44,24 +45,19 @@ async def chat(data: ChatRequest):
         "content": user_message
     })
 
-    reply = get_sharma_reply(user_message, 
-        conversation[session_id])
+    # TEMP natural replies (no AI yet)
+    reply = generate_natural_reply(user_message)
 
     conversation.append({
         "role": "assistant",
         "content": reply
     })
 
-    return JSONResponse(
-        content={
-            "status": "ok",
-            "reply": reply,
-            "session_id": session_id
-        }
-    )
+    return {"reply": reply}
+
 
 @app.post("/api/report")
-async def generate_report(data: ReportRequest):
+async def generate_report(request: Request):
     data = await request.json()
     session_id = data.session_id
 
@@ -70,7 +66,7 @@ async def generate_report(data: ReportRequest):
             "report": "No conversation found for this session."
         })
 
-    convo = conversation[session_id]
+    convo = conversations[session_id]
 
     full_text = ""
     report_lines = []
@@ -84,16 +80,8 @@ async def generate_report(data: ReportRequest):
 
     extracted = extract_scammer_info(full_text)
 
-    complaint = f"""
-To,
-The Cyber Crime Cell
-
-Subject: Complaint regarding suspected online financial fraud
-
-Respected Sir/Madam,
-
-I, Mr. Sharma, a retired senior citizen, wish to report a suspected case
-of online financial fraud. The details of the incident are as follows:
+    report = f"""
+CYBER FRAUD INCIDENT REPORT
 
 Conversation Summary:
 ---------------------
@@ -101,17 +89,20 @@ Conversation Summary:
 
 Extracted Scam Indicators:
 --------------------------
-UPI IDs: {', '.join(extracted['upi_ids']) or 'None'}
-Phone Numbers: {', '.join(extracted['phone_numbers']) or 'None'}
-Links: {', '.join(extracted['links']) or 'None'}
+UPI IDs: {', '.join(extracted['upi_ids']) or 'None found'}
+Phone Numbers: {', '.join(extracted['phone_numbers']) or 'None found'}
+Bank Accounts: {', '.join(extracted['bank_accounts']) or 'None found'}
+Links: {', '.join(extracted['links']) or 'None found'}
 
-I request you to kindly investigate this matter.
-
-Thanking you,
-Mr. Sharma
+Remarks:
+--------
+The above indicators suggest a potential financial fraud attempt.
+This report can be submitted to the Cyber Crime Portal (cybercrime.gov.in).
 """
 
-    return {"complaint": complaint.strip()}
+    return {
+        "report": report.strip()
+    }
 
 
 

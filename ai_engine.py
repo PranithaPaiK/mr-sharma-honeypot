@@ -1,13 +1,10 @@
-# from openai import OpenAI
-# import os
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = OpenAI()
 
 SYSTEM_PROMPT = """
 You are Mr. Sharma, a 62-year-old retired Indian man.
@@ -24,14 +21,13 @@ Behavior:
 - Ask curious follow-up questions
 - Never give real sensitive information
 - React emotionally to urgency or threats
-
-If you cannot produce 5–7 sentences, rephrase and expand until you do.
 """
 
 MAX_MESSAGES = 20
 
 def get_sharma_reply(scammer_message: str, conversation: list) -> str:
     try:
+        conversation.append({"role": "user", "content": scammer_message})
         if len(conversation) > MAX_MESSAGES:
             conversation[:] = [conversation[0]] + conversation[-18:]
 
